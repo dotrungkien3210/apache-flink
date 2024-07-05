@@ -4,7 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>flink-examples</groupId>
   <artifactId>flink-examples</artifactId>
-  <version>0.0.2-SNAPSHOT</version>
+  <version>v1</version>
 
   <!-- Versions -->
   <properties>
@@ -21,44 +21,62 @@
   </properties>
 
   <build>
-    <sourceDirectory>src</sourceDirectory>
-
     <plugins>
-
       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>${maven-compiler-plugin.version}</version>
+        <version>3.8.1</version>
         <configuration>
-          <compilerArgs>
-            <!-- <arg>-verbose</arg> -->
-            <arg>-Xlint:all,-options,-path</arg>
-          </compilerArgs>
+          <source>8</source>
+          <target>8</target>
         </configuration>
       </plugin>
 
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-assembly-plugin</artifactId>
-        <version>${maven-assembly-plugin.version}</version>
-        <configuration>
-          <descriptorRefs>
-            <descriptorRef>jar-with-dependencies</descriptorRef>
-          </descriptorRefs>
-        </configuration>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>3.4.1</version>
         <executions>
           <execution>
-            <id>make-assembly</id>
             <phase>package</phase>
             <goals>
-              <goal>single</goal>
+              <goal>shade</goal>
             </goals>
+            <configuration>
+              <relocations>
+                <relocation>
+                  <pattern>org.json</pattern>
+                  <shadedPattern>shaded.org.json</shadedPattern>
+                </relocation>
+              </relocations>
+              <filters>
+                <filter>
+                  <artifact>*:*</artifact>
+                  <excludes>
+                    <exclude>META-INF/*.SF</exclude>
+                    <exclude>META-INF/*.DSA</exclude>
+                    <exclude>META-INF/*.RSA</exclude>
+                  </excludes>
+                </filter>
+              </filters>
+              <artifactSet/>
+              <outputFile>${project.build.directory}/${project.artifactId}-${project.version}-final.jar
+              </outputFile>
+            </configuration>
           </execution>
         </executions>
       </plugin>
-
     </plugins>
-
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <includes>
+          <include>log4j2.properties</include>
+        </includes>
+      </resource>
+    </resources>
   </build>
+
   <dependencies>
 
     <dependency>

@@ -1,4 +1,4 @@
-package main.java.wordcount;
+package wordcount;
 
 import org.apache.flink.api.common.ExecutionConfig;
 import org.apache.flink.api.common.functions.FilterFunction;
