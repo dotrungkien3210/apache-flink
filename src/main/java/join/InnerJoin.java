@@ -1,4 +1,4 @@
-package main.java.join;
+package join;
 
 import org.apache.flink.api.common.functions.JoinFunction;
 import org.apache.flink.api.common.functions.MapFunction;
