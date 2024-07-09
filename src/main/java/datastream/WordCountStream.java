@@ -27,7 +27,7 @@ public class WordCountStream {
                 })
 
                 .map(new Tokenizer()) // split up the lines in pairs (2-tuples) containing: tuple2 {(name,1)...}
-                .keyBy(t -> t.f0)
+                .keyBy(t -> t.f0)  // tạo substream bằng name
                 .sum(1); // group by the tuple field "0" and sum up tuple field "1"
 
         counts.print();
