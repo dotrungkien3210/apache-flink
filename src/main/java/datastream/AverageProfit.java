@@ -17,15 +17,21 @@ public class AverageProfit {
 
         // month, product, category, profit, count
         DataStream < Tuple5 < String, String, String, Integer, Integer >> mapped =
-                data.map(new Splitter()); // tuple  [June,Category5,Bat,12,1]
-        //        [June,Category4,Perfume,10,1]
+                data.map(new Splitter()); // tuple  [June,Category5,Bat,12,1]  [June,Category4,Perfume,10,1]
+
+
 
         // groupBy 'month'
         DataStream < Tuple5 < String, String, String, Integer, Integer >> reduced =
-                mapped.keyBy(t -> t.f0).reduce(new Reduce1());
-        // June { [Category5,Bat,12,1] Category4,Perfume,10,1}	//rolling reduce
-        // reduced = { [Category4,Perfume,22,2] ..... }
+                mapped.keyBy(t -> t.f0) // June { [Category5,Bat,12,1] [Category4,Perfume,10,1]}	//rolling reduce
+                        .reduce(new Reduce1()); // reduced = { [Category4,Perfume,22,2] ..... }
+
+
+
+
+
         // month, avg. profit
+        // tính toán lợi nhận trung bình trên tháng, ta lấy lợi nhuận chia cho số tháng
         DataStream < Tuple2 < String, Double >> profitPerMonth =
                 reduced.map(new MapFunction < Tuple5 < String, String, String, Integer, Integer > , Tuple2 < String, Double >> () {
                     public Tuple2 < String, Double >
@@ -64,6 +70,8 @@ public class AverageProfit {
         reduce(Tuple5 < String, String, String, Integer, Integer > current,
                Tuple5 < String, String, String, Integer, Integer > pre_result)
         {
+            // Ở đây giá trị 0,1,2 của luồng datastream trước bị bỏ, cộng số lượng sản phẩm bán và số lợi nhuận của
+            // sản phẩm trước và sau.
             return new Tuple5 < String, String, String, Integer, Integer >(
                     current.f0,
                     current.f1,

@@ -16,10 +16,11 @@ public class DataServer
             Socket socket = listener.accept();
             System.out.println("Got new connection: " + socket.toString());
 
-            BufferedReader br = new BufferedReader(new FileReader("/home/jivesh/avg"));
+            BufferedReader br = new BufferedReader(new FileReader("input/avg.txt"));
 
             try {
                 PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+                System.out.println(out);
                 String line;
                 while ((line = br.readLine()) != null){
 
