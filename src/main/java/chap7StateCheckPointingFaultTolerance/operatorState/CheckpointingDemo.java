@@ -1,7 +1,4 @@
-package chap7StateCheckPointingFaultTolerance;
-
-import java.sql.Timestamp;
-import java.util.concurrent.TimeUnit;
+package chap7StateCheckPointingFaultTolerance.operatorState;
 
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.functions.RichFlatMapFunction;
@@ -28,25 +25,39 @@ public class CheckpointingDemo {
         // set up the streaming execution environment
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
+        // Mặc định thì checkpoint bị disable, ta phải enable nó
         // start a checkpoint every 1000 ms
+        // Thời gian checkpoint quyết định sau bao lâu thì cần một checkpoint
+        // đóng vai trò quan trọng khi Flink phải quyết định khi nào cần chèn rào cản (barrier) vào luồng dữ liệu.
         env.enableCheckpointing(1000);
 
         // to set minimum progress time to happen between checkpoints
+        // Ta biết bằng sau khi lấy snapshot, nó sẽ lưu xuống state backend
+        // Đối với large state, sẽ mất nhiều thời gian hơn để hoàn thành.
+        // Như vậy hệ thống lúc nào cũng sẽ trong trạng thái bận và sẽ không có nhiều thời gian xử lý
+        // dòng lệnh này yêu cầu chương trình chỉ thực hiện processing trong 500ms
         env.getCheckpointConfig().setMinPauseBetweenCheckpoints(500);
 
         // checkpoints have to complete within 10000 ms, or are discarded
+        // Thời gian giới hạn để checkpoint hoàn thành, hoặc nó sẽ bị loại bỏ
         env.getCheckpointConfig().setCheckpointTimeout(10000);
 
-        // set mode to exactly-once (this is the default)
+        // Mức độ đảm bảo (guarantee level) gồm có "exactly-once" and "at-least-once".
+        // exactly-once: tất cả element xử lý bởi operator chỉ 1 lần và không nhiều hơn
+        // at-least-once: thì xử lý nhiều hơn 1 lần cho các trường hợp liên quan tới độ trễ
+        // exactly-once có thể tốn nhiều thời gian hơn nên không dùng khi độ trễ cao
+        // Vậy trong trường hợp cần low latency, ta sử dụng at-least one
         env.getCheckpointConfig().setCheckpointingMode(CheckpointingMode.EXACTLY_ONCE); // AT_LEAST_ONCE
 
-        // allow only one checkpoint to be in progress at the same time
+        // Cho phép số lượng checkpoint đồng thời
+        // Theo mặc định thì system sẽ không trigger checkpoint khác khi mà có checkpoint đang chạy
+        // tuy nhiên vẫn có thể cho phép nhiều checkpoint ghi đè trong một số trường hợp
         env.getCheckpointConfig().setMaxConcurrentCheckpoints(1);
 
-        // enable externalized checkpoints which are retained after job cancellation
+        // Theo mặc định thì checkpoint sẽ bị xóa đi khi mà job bị hủy
+        // tùy chọn này có thể giúp giữ checkpoint ngay cả khi job bị hủy
         env.getCheckpointConfig().enableExternalizedCheckpoints(ExternalizedCheckpointCleanup.RETAIN_ON_CANCELLATION); // DELETE_ON_CANCELLATION
 
-        //StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.setRestartStrategy(RestartStrategies.fixedDelayRestart(3, 100));
         // number of restart attempts , delay in each restart
 

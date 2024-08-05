@@ -21,7 +21,7 @@ public class DataServer
             Socket socket = listener.accept();
             System.out.println("Got new connection: " + socket.toString());
 
-            br = new BufferedReader(new FileReader("/home/jivesh/broadcast_small"));
+            br = new BufferedReader(new FileReader("./input/broadcast_smal.txt"));
 
             try
             {

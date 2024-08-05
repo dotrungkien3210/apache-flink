@@ -1,6 +1,4 @@
-package chap7StateCheckPointingFaultTolerance;
-
-import java.sql.Timestamp;
+package chap7StateCheckPointingFaultTolerance.keyState;
 
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.functions.ReduceFunction;
@@ -9,8 +7,6 @@ import org.apache.flink.api.common.state.ReducingState;
 import org.apache.flink.api.common.state.ReducingStateDescriptor;
 import org.apache.flink.api.common.state.ValueState;
 import org.apache.flink.api.common.state.ValueStateDescriptor;
-import org.apache.flink.api.common.typeinfo.TypeHint;
-import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -22,11 +18,15 @@ import org.apache.flink.api.common.serialization.SimpleStringEncoder;
 import org.apache.flink.streaming.api.functions.sink.filesystem.StreamingFileSink;
 import org.apache.flink.streaming.api.functions.sink.filesystem.rollingpolicies.DefaultRollingPolicy;
 
+/**
+ * Ở ví dụ này ta vẫn sẽ tính tổng của mỗi 10 records nhưng dưới dạng reducing state
+ */
+
 public class ReducingStateDemo {
     public static void main(String[] args) throws Exception {
         // set up the streaming execution environment
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-
+        // Consume từ cổng 9090
         DataStream < String > data = env.socketTextStream("localhost", 9090);
 
         DataStream < Long > sum = data.map(new MapFunction < String, Tuple2 < Long, String >> () {
@@ -82,6 +82,10 @@ public class ReducingStateDemo {
             sum = getRuntimeContext().getReducingState(sumDesc);
         }
 
+        /**
+         * reduce function này sẽ có nhiệm vụ cộng sum trước đó với giá trị mới thêm vào. lưu kết quả vào state
+         *
+         */
         public class SumReduce implements ReduceFunction < Long > {
             public Long reduce(Long commlativesum, Long currentvalue) {
                 return commlativesum + currentvalue;

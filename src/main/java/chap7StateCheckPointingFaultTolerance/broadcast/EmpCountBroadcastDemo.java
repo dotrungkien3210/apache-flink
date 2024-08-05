@@ -24,14 +24,16 @@ import org.apache.flink.streaming.api.functions.sink.filesystem.StreamingFileSin
 import org.apache.flink.streaming.api.functions.sink.filesystem.rollingpolicies.DefaultRollingPolicy;
 
 public class EmpCountBroadcastDemo {
+    // Broadcast state descriptor được tạo từ map state descriptor.
+    // Tham số truyền vào gồm type của key và type của state
     public static final MapStateDescriptor < String, String > excludeEmpDescriptor =
             new MapStateDescriptor < String, String > ("exclude_employ", BasicTypeInfo.STRING_TYPE_INFO, BasicTypeInfo.STRING_TYPE_INFO);
 
     public static void main(String[] args) throws Exception {
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-
+        // Đọc file và truyền vào luồng stream
         DataStream < String > excludeEmp = env.socketTextStream("localhost", 9090);
-
+        // sau khi luồng streaming được đọc dữ liệu sẽ được broadcast thông qua hàm
         BroadcastStream < String > excludeEmpBroadcast = excludeEmp.broadcast(excludeEmpDescriptor);
 
         DataStream < Tuple2 < String, Integer >> employees = env.readTextFile("/home/jivesh/broadcast.txt")
